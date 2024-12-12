@@ -194,13 +194,18 @@ QMenu *BasicGraphicsScene::createSceneMenu(QPointF const scenePos)
     return nullptr;
 }
 
+std::unique_ptr<NodeGraphicsObject> BasicGraphicsScene::createNodeGraphicsObject(NodeId const nodeId)
+{
+    return std::make_unique<NodeGraphicsObject>(*this, nodeId);
+}
+
 void BasicGraphicsScene::traverseGraphAndPopulateGraphicsObjects()
 {
     auto allNodeIds = _graphModel.allNodeIds();
 
     // First create all the nodes.
     for (NodeId const nodeId : allNodeIds) {
-        _nodeGraphicsObjects[nodeId] = std::make_unique<NodeGraphicsObject>(*this, nodeId);
+        _nodeGraphicsObjects[nodeId] = createNodeGraphicsObject(nodeId);
     }
 
     // Then for each node check output connections and insert them.
@@ -269,7 +274,7 @@ void BasicGraphicsScene::onNodeDeleted(NodeId const nodeId)
 
 void BasicGraphicsScene::onNodeCreated(NodeId const nodeId)
 {
-    _nodeGraphicsObjects[nodeId] = std::make_unique<NodeGraphicsObject>(*this, nodeId);
+    _nodeGraphicsObjects[nodeId] = createNodeGraphicsObject(nodeId);
 
     Q_EMIT modified(this);
 }

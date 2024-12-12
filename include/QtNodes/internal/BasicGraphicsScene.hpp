@@ -127,6 +127,9 @@ Q_SIGNALS:
     /// Signal allows showing custom context menu upon clicking a node.
     void nodeContextMenu(NodeId const nodeId, QPointF const pos);
 
+protected:
+    std::unique_ptr<NodeGraphicsObject> createNodeGraphicsObject(NodeId const nodeId);
+
 private:
     /// @brief Creates Node and Connection graphics objects.
     /**
