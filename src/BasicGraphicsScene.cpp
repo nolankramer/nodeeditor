@@ -33,8 +33,18 @@
 namespace QtNodes {
 
 BasicGraphicsScene::BasicGraphicsScene(AbstractGraphModel &graphModel, QObject *parent)
+    : BasicGraphicsScene(
+        graphModel,
+        [](BasicGraphicsScene &scene, NodeId const nodeId) { return std::make_unique<NodeGraphicsObject>(scene, nodeId); },
+        parent
+    )
+{ }
+    
+
+BasicGraphicsScene::BasicGraphicsScene(AbstractGraphModel &graphModel, NodeFactoryFunction factory, QObject *parent)
     : QGraphicsScene(parent)
     , _graphModel(graphModel)
+    , createNodeGraphicsObject(factory)
     , _nodeGeometry(std::make_unique<DefaultHorizontalNodeGeometry>(_graphModel))
     , _nodePainter(std::make_unique<DefaultNodePainter>())
     , _connectionPainter(std::make_unique<DefaultConnectionPainter>())
@@ -194,18 +204,13 @@ QMenu *BasicGraphicsScene::createSceneMenu(QPointF const scenePos)
     return nullptr;
 }
 
-std::unique_ptr<NodeGraphicsObject> BasicGraphicsScene::createNodeGraphicsObject(NodeId const nodeId)
-{
-    return std::make_unique<NodeGraphicsObject>(*this, nodeId);
-}
-
 void BasicGraphicsScene::traverseGraphAndPopulateGraphicsObjects()
 {
     auto allNodeIds = _graphModel.allNodeIds();
 
     // First create all the nodes.
     for (NodeId const nodeId : allNodeIds) {
-        _nodeGraphicsObjects[nodeId] = createNodeGraphicsObject(nodeId);
+        _nodeGraphicsObjects[nodeId] = createNodeGraphicsObject(*this, nodeId);
     }
 
     // Then for each node check output connections and insert them.
@@ -274,7 +279,7 @@ void BasicGraphicsScene::onNodeDeleted(NodeId const nodeId)
 
 void BasicGraphicsScene::onNodeCreated(NodeId const nodeId)
 {
-    _nodeGraphicsObjects[nodeId] = createNodeGraphicsObject(nodeId);
+    _nodeGraphicsObjects[nodeId] = createNodeGraphicsObject(*this, nodeId);
 
     Q_EMIT modified(this);
 }

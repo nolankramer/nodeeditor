@@ -24,9 +24,12 @@ namespace QtNodes {
 class AbstractConnectionPainter;
 class AbstractGraphModel;
 class AbstractNodePainter;
+class BasicGraphicsScene;
 class ConnectionGraphicsObject;
 class NodeGraphicsObject;
 class NodeStyle;
+
+using NodeFactoryFunction = std::unique_ptr<NodeGraphicsObject> (*)(BasicGraphicsScene &scene, NodeId const nodeId);
 
 /// An instance of QGraphicsScene, holds connections and nodes.
 class NODE_EDITOR_PUBLIC BasicGraphicsScene : public QGraphicsScene
@@ -34,6 +37,7 @@ class NODE_EDITOR_PUBLIC BasicGraphicsScene : public QGraphicsScene
     Q_OBJECT
 public:
     BasicGraphicsScene(AbstractGraphModel &graphModel, QObject *parent = nullptr);
+    BasicGraphicsScene(AbstractGraphModel &graphModel, NodeFactoryFunction factory, QObject *parent = nullptr);
 
     // Scenes without models are not supported
     BasicGraphicsScene() = delete;
@@ -105,12 +109,6 @@ public:
    */
     virtual QMenu *createSceneMenu(QPointF const scenePos);
 
-protected:
-    /// @brief Creates a NodeGraphicsObject from the specified id. Override this function to create subclassed NodeGraphicsObjects instead.
-    /// @param nodeId The unique id of the node.
-    /// @return a NodeGraphicsObject.
-    virtual std::unique_ptr<NodeGraphicsObject> createNodeGraphicsObject(NodeId const nodeId);
-
 Q_SIGNALS:
     void modified(BasicGraphicsScene *);
 
@@ -166,6 +164,8 @@ public Q_SLOTS:
 
 private:
     AbstractGraphModel &_graphModel;
+
+    NodeFactoryFunction createNodeGraphicsObject;
 
     using UniqueNodeGraphicsObject = std::unique_ptr<NodeGraphicsObject>;
 
