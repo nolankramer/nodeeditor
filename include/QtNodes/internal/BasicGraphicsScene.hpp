@@ -60,6 +60,8 @@ public:
 
     void setConnectionPainter(std::unique_ptr<AbstractConnectionPainter> newPainter);
 
+    void setNodeGeometry(std::unique_ptr<AbstractNodeGeometry> newGeom);
+
     QUndoStack &undoStack();
 
 public:
